@@ -21,15 +21,15 @@
 
 /****LOCATION DEFINITIONS****/
 #define DEV_ID_LOCATION 0
-#define FIRST_CLIENT_ID_LOCATION 22
+#define COMMUNICATION_NUMBER 22
 #define SECOND_CLIENT_ID_LOCATION 64
-#define IP_LOCATION 65
-#define SSID_LOCATION 68
-#define PASSWORD_LOCATION 20
-#define TIMER_DATA_LOCATION 32
-#define LOWER_THRESHOLD 42
-#define REPEAT_LOCATION 55
-#define UPPER_THRESHOLD 69
+#define HOME_LATTITUDE 106
+#define HOME_LONGITUDE 128
+#define RADIUS 150
+#define TIMER_DATA_LOCATION 172
+#define APN 182
+#define REPEAT_LOCATION 185
+#define ACTUATOR_STATUS_LOCATION 189
 
 /****SIZE DEFINITIONS****/
 #define MAX_LENGTH_OF_DEVICEID 20
@@ -48,9 +48,10 @@
 
 /****EXTERNAL VARIABLES****/
 String OutData="";                                          //assign check--assign in init function
-int eepromLocation[7]={136,147,158,169,180,242,253};
-/***INTERNAL FUNCTIONS****/
 
+/***INTERNAL FUNCTIONS****/
+String ReadFromEeprom(char add);
+void WriteToEeprom(char add,String data);
 
 /***EXTERNAL FUNCTIONS****/
 int StoreInfo(String InIdentifier,String InData);            //if data is null check -- check all incoming parameters
@@ -59,7 +60,9 @@ int ResetRepeatData();
 
 /****************************
 Function Name :ReadFromEeprom
+
 Description   :Function to read strings from eeprom
+
 Return Data   :Returns requested data if available in Eeprom
 ****************************/
 String ReadFromEeprom(char add)
@@ -80,11 +83,13 @@ String ReadFromEeprom(char add)
 }
 
 /****************************
-Function Name :Write_To_Eeprom
+Function Name :WriteToEeprom
+
 Description   :Function to write strings to eeprom
+
 Return Data   :Writes given data into eeprom
 ****************************/
-void Write_To_Eeprom(char add,String data)
+void WriteToEeprom(char add,String data)
 {                                                          //check if data is null
   int _size = data.length();
   int i;
@@ -93,12 +98,14 @@ void Write_To_Eeprom(char add,String data)
     EEPROM.write(add+i,data[i]);
   }
   EEPROM.write(add+_size,'\0');   
-                                                           //Fixes changes done in eeprom
+  EEPROM.commit();                                                        //Fixes changes done in eeprom
 }
 
 /****************************
 Function Name :StoreInfo
+
 Description   :Stores given data into eeprom at specified locations                //add parameters with what should be sent
+
 Return Data   :Returns 1 for success, 0 for error in identifiers, -1 for error in length of data
 ****************************/
 int StoreInfo(String InIdentifier,String InData)                        // add null check
@@ -109,7 +116,7 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
   {
     if(len<=10)                                              //#define needed for all ex.MAX_LENGTH_OF_DEVICEID=
     {
-      Write_To_Eeprom(DEV_ID_LOCATION,InData);                                        //declare response to handle from fn
+      WriteToEeprom(DEV_ID_LOCATION,InData);                                        //declare response to handle from fn
       return 1;
     }
     else
@@ -119,16 +126,16 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
     }
   }
   
-  else if(InIdentifier=="FirstClientId")                                  //Storing First client id in eeprom
+  else if(InIdentifier=="communication_number")                                  //Storing First client id in eeprom
   {
     if(len<=40)
     {
-      Write_To_Eeprom(FIRST_CLIENT_ID_LOCATION,InData);                                            //another fn that checks length and to eeprom...remove if..elseif.... reduce code size
+      WriteToEeprom(COMMUNICATION_NUMBER,InData);                                            //another fn that checks length and to eeprom...remove if..elseif.... reduce code size
       return 1;
     }
     else
     {
-      EEPROM.write(FIRST_CLIENT_ID_LOCATION,'\0'); 
+      EEPROM.write(COMMUNICATION_NUMBER,'\0'); 
       return -1;
     }   
   }
@@ -137,7 +144,7 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
   {
     if(len<=40)
     {
-      Write_To_Eeprom(SECOND_CLIENT_ID_LOCATION,InData);
+      WriteToEeprom(SECOND_CLIENT_ID_LOCATION,InData);
       return 1;
     }
     else
@@ -147,44 +154,44 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
     }
   }
   
-  else if(InIdentifier=="ip_address")                                      //Storing Ip address in eeprom
+  else if(InIdentifier=="home_lattitude")                                      //Storing Ip address in eeprom
   {
     if(len<=20)
     {
-      Write_To_Eeprom(IP_LOCATION,InData);
+      WriteToEeprom(HOME_LATTITUDE,InData);
       return 1;
     }
     else
     {
-      EEPROM.write(IP_LOCATION,'\0'); 
+      EEPROM.write(HOME_LATTITUDE,'\0'); 
       return -1;
     }
   }
  
-  else if(InIdentifier=="wifi_ssid")                                       //Storing wifi ssid in eeprom
+  else if(InIdentifier=="home_longitude")                                       //Storing wifi ssid in eeprom
   {
     if(len<=20)
     {
-      Write_To_Eeprom(SSID_LOCATION,InData);
+      WriteToEeprom(HOME_LONGITUDE,InData);
       return 1;
     }
     else
     {
-      EEPROM.write(SSID_LOCATION,'\0'); 
+      EEPROM.write(HOME_LONGITUDE,'\0'); 
       return -1;
     }
   }
 
-  else if(InIdentifier=="wifi_password")                                   //Storing wifi password in eeprom
+  else if(InIdentifier=="radius")                                   //Storing wifi password in eeprom
   {
     if(len<=20)
     {
-      Write_To_Eeprom(PASSWORD_LOCATION,InData);
+      WriteToEeprom(RADIUS,InData);
       return 1;
     }
     else
     {
-      EEPROM.write(PASSWORD_LOCATION,'\0'); 
+      EEPROM.write(RADIUS,'\0'); 
       return -1;
     }
   }
@@ -193,7 +200,7 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
   {
     if(len<=8)
     {
-      Write_To_Eeprom(TIMER_DATA_LOCATION,InData);
+      WriteToEeprom(TIMER_DATA_LOCATION,InData);
       return 1;
     }
     else
@@ -207,7 +214,7 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
   {
     if(len<=1)
     {
-      Write_To_Eeprom(REPEAT_LOCATION,InData);
+      WriteToEeprom(REPEAT_LOCATION,InData);
       return 1;
     }
     else
@@ -217,30 +224,30 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
     }
   }
  
-  else if(InIdentifier=="lower_threshold")                                 //Storing repeat data in eeprom
+  else if(InIdentifier=="apn")                                 //Storing repeat data in eeprom
   {
     if(len<=1)
     {
-      Write_To_Eeprom(LOWER_THRESHOLD,InData);
+      WriteToEeprom(APN,InData);
       return 1;
     }
     else
     {
-      EEPROM.write(LOWER_THRESHOLD,'\0'); 
+      EEPROM.write(APN,'\0'); 
       return -1;
     }
   }
  
-  else if(InIdentifier=="upper_threshold")                                 //Storing Actuator status in eeprom
+  else if(InIdentifier=="actuator_status")                                 //Storing Actuator status in eeprom
   {
     if(len<=1)
     {
-      Write_To_Eeprom(UPPER_THRESHOLD,InData);
+      WriteToEeprom(ACTUATOR_STATUS_LOCATION,InData);
       return 1;
     }
     else
     {
-      EEPROM.write(UPPER_THRESHOLD,'\0'); 
+      EEPROM.write(ACTUATOR_STATUS_LOCATION,'\0'); 
       return -1;
     }
   }
@@ -252,7 +259,9 @@ int StoreInfo(String InIdentifier,String InData)                        // add n
 
 /****************************
 Function Name :RetrieveInfo
+
 Description   :Retrieves requested information from eeprom
+
 Return Data   :Returns requested data for success, "error" for error
 ****************************/
 String RetrieveInfo(String OutIdentifier)
@@ -262,9 +271,9 @@ String RetrieveInfo(String OutIdentifier)
     OutData=ReadFromEeprom(DEV_ID_LOCATION);
     return OutData;
   }
-  else if(OutIdentifier=="FirstClientId")                                 //Retrieving frist client id from eeprom
+  else if(OutIdentifier=="communication_number")                                 //Retrieving frist client id from eeprom
   {
-    OutData=ReadFromEeprom(FIRST_CLIENT_ID_LOCATION);
+    OutData=ReadFromEeprom(COMMUNICATION_NUMBER);
     return OutData;
   }
   else if(OutIdentifier=="SecondClientId")                                //Retrieving second client id from eeprom
@@ -272,19 +281,19 @@ String RetrieveInfo(String OutIdentifier)
     OutData=ReadFromEeprom(SECOND_CLIENT_ID_LOCATION);
     return OutData;
   }
-  else if(OutIdentifier=="ip_address")                                     //Retrieving ip address from eeprom
+  else if(OutIdentifier=="home_lattitude")                                     //Retrieving ip address from eeprom
   {
-    OutData=ReadFromEeprom(IP_LOCATION);
+    OutData=ReadFromEeprom(HOME_LATTITUDE);
     return OutData;
   }
-  else if(OutIdentifier=="wifi_ssid")                                      //Retrieving wifi ssid from eeprom
+  else if(OutIdentifier=="home_longitude")                                      //Retrieving wifi ssid from eeprom
   {
-    OutData=ReadFromEeprom(SSID_LOCATION);
+    OutData=ReadFromEeprom(HOME_LONGITUDE);
     return OutData;
   }
-  else if(OutIdentifier=="wifi_password")                                  //Retrieving wifi password from eeprom
+  else if(OutIdentifier=="radius")                                  //Retrieving wifi password from eeprom
   {
-    OutData=ReadFromEeprom(PASSWORD_LOCATION);
+    OutData=ReadFromEeprom(RADIUS);
     return OutData;
   }
   else if(OutIdentifier=="timer_data")                                     //Retrieving timer data from eeprom
@@ -297,14 +306,14 @@ String RetrieveInfo(String OutIdentifier)
     OutData=ReadFromEeprom(REPEAT_LOCATION);
     return OutData;
   }
-  else if(OutIdentifier=="lower_threshold")                                //Retrieving temporary repeat data from eeprom
+  else if(OutIdentifier=="apn")                                //Retrieving temporary repeat data from eeprom
   {
-    OutData=ReadFromEeprom(LOWER_THRESHOLD);
+    OutData=ReadFromEeprom(APN);
     return OutData;
   }
-  else if(OutIdentifier=="upper_threshold")                                //Retrieving actuator status from eeprom
+  else if(OutIdentifier=="actuator_status")                                //Retrieving actuator status from eeprom
   {
-    OutData=ReadFromEeprom(UPPER_THRESHOLD);
+    OutData=ReadFromEeprom(ACTUATOR_STATUS_LOCATION);
     return OutData;
   }
   else                                                                    //Error handling for retrieving eeprom data
@@ -315,32 +324,13 @@ String RetrieveInfo(String OutIdentifier)
 
 /****************************
 Function Name :ResetRepeatData
+
 Description   :Resets repeat data in eeprom
+
 Return Data   :Returns 1 on success
 ****************************/
 int ResetRepeatData()
 {
-  Write_To_Eeprom(172,"1");                                                 //Resets repeat info in eeprom
+  WriteToEeprom(172,"1");                                                 //Resets repeat info in eeprom
   return 1;
 }
-/****************************
-Function Name :ResetRepeatData
-Description   :Resets repeat data in eeprom
-Return Data   :Returns 1 on success
-****************************/
-int clearEeprom(char add)
-{
-  int i;
-  char data[100];
-  int eeprom_length=0;
-  unsigned char eeprom_address;
-  eeprom_address=EEPROM.read(add);
-  while(eeprom_address!= '\0' && eeprom_length<500)   
-  {    
-    eeprom_address=EEPROM.read(add+eeprom_length);
-    EEPROM.write(add+eeprom_length,'\0');
-    eeprom_length++;
-  }
- 
-}
-
